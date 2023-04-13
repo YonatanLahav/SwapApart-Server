@@ -1,0 +1,4 @@
+{
+  "mongoURI": "mongodb+srv://yonatanLahav:Lahav180@cluster0.ro2ltyv.mongodb.net/?retryWrites=true&w=majority",
+  "jwtSecret": "secretkey"
+}
