@@ -42,36 +42,28 @@ router.get('/:id', auth, async (req, res) => {
 // @route   PUT api/users
 // @desc    Update user.
 // @access  Private
-router.put('/:id', auth, async (req, res) => {
-    const { startDate, endDate, country, region, city, minRoomsNum, minBathroomsNum } = req.body;
+router.put('/', auth, async (req, res) => {
+    const { firstName, lastName, email, apartment } = req.body;
 
     // Build plan object
-    const planFields = {};
-    if (startDate) planFields.startDate = startDate;
-    if (endDate) planFields.endDate = endDate;
-    if (country) planFields.country = country;
-    if (region) planFields.region = region;
-    if (city) planFields.city = city;
-    if (minRoomsNum) planFields.minRoomsNum = minRoomsNum;
-    if (minBathroomsNum) planFields.minBathroomsNum = minBathroomsNum;
+    const userFields = {};
+    if (firstName) userFields.firstName = firstName;
+    if (lastName) userFields.lastName = lastName;
+    if (email) userFields.email = email;
+    if (apartment) userFields.apartment = apartment;
 
     try {
-        let plan = await Plan.findById(req.params.id);
+        let user = await User.findById(req.user.id);
 
-        if (!plan) return res.status(404).json({ msg: 'Plan not found' });
+        if (!user) return res.status(404).json({ msg: 'User not found' });
 
-        // Make sure user owns plan
-        if (plan.userId.toString() !== req.user.id) {
-            return res.status(401).json({ msg: 'Not authorized' });
-        }
-
-        plan = await Plan.findByIdAndUpdate(
-            req.params.id,
-            { $set: planFields },
+        user = await User.findByIdAndUpdate(
+            req.user.id,
+            { $set: userFields },
             { new: true }
         );
 
-        res.json(plan);
+        res.json(user);
     } catch (err) {
         console.error(err.message);
         res.status(500).send('Server Error');
