@@ -3,13 +3,14 @@ const router = express.Router();
 const auth = require('../../middleware/auth');
 const Plan = require('../../models/Plan');
 const Swipe = require('../../models/Swipe');
+const User = require('../../models/User');
 
 // @route   GET api/plans
-// @desc    Get all plans of the auth user.
+// @desc    Get all plans of the user.
 // @access  Private
 router.get('/', auth, async (req, res) => {
     try {
-        const plans = await Plan.find({ userId: req.user.id });
+        const plans = (await User.findById(req.user.id).populate('plans')).plans
         res.json(plans);
     } catch (err) {
         console.error(err.message);
@@ -35,6 +36,10 @@ router.post('/', auth, async (req, res) => {
         });
 
         const plan = await newPlan.save();
+
+        // Add the plan id to the user's plans array
+        const user = await User.findByIdAndUpdate(req.user.id, { $push: { plans: plan.id } }, { new: true });
+
         res.json(plan);
     } catch (err) {
         console.error(err.message);
