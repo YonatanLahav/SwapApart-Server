@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const auth = require('../../middleware/auth');
 const Plan = require('../../models/Plan');
+const Swipe = require('../../models/Swipe');
 
 // @route   GET api/plans
 // @desc    Get all plans of the auth user.
@@ -100,6 +101,41 @@ router.delete('/:id', auth, async (req, res) => {
     } catch (err) {
         console.error(err.message);
         res.status(500).send('Server Error');
+    }
+});
+
+// @route   GET api/plans/optional/:id
+// @desc    Get all optional plans for matching.
+// @access  Private
+router.get('/optional/:id', auth, async (req, res) => {
+    try {
+        const plan = await Plan.findById(req.params.id)
+        const startDateRange = new Date(plan.startDate);
+        startDateRange.setDate(startDateRange.getDate() - 1);
+        const endDateRange = new Date(plan.endDate);
+        endDateRange.setDate(endDateRange.getDate() + 1);
+
+        const excludedPlanIds = await Swipe.distinct('swipedPlan', {
+            swiperPlan: plan.id,
+        });
+
+        console.log(excludedPlanIds)
+        const plans = await Plan.find({
+            $and: [
+                { startDate: { $gte: startDateRange } },
+                { endDate: { $lte: endDateRange } },
+                { userId: { $ne: plan.userId } },
+                { country: plan.country },
+                { region: plan.region },
+                { minRoomsNum: { $gte: plan.minRoomsNum } },
+                { minBathroomsNum: { $gte: plan.minBathroomsNum } },
+                { _id: { $nin: excludedPlanIds } },
+            ]
+        });
+        res.json(plans);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server error');
     }
 });
 
