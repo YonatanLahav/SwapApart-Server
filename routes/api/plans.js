@@ -19,7 +19,7 @@ router.get('/', auth, async (req, res) => {
 });
 
 // @route   POST api/plans
-// @desc    Add new plan to the auth user.
+// @desc    Add new plan to the user.
 // @access  Private
 router.post('/', auth, async (req, res) => {
     const { startDate, endDate, country, region, city, minRoomsNum, minBathroomsNum } = req.body;
