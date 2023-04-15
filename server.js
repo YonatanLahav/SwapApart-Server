@@ -25,6 +25,7 @@ app.use('/login', require('./routes/auth/login'));
 app.use('/register', require('./routes/auth/register'));
 app.use('/api/users', auth, require('./routes/api/users'));
 app.use('/api/plans', auth, require('./routes/api/plans'));
+app.use('/api/swipes', auth, require('./routes/api/swipes'));
 
 // Root endpoint
 app.get('/', (req, res) => res.send('Hello World!'));

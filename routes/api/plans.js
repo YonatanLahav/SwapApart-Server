@@ -136,7 +136,8 @@ router.get('/optional/:id', auth, async (req, res) => {
                 { minBathroomsNum: { $gte: plan.minBathroomsNum } },
                 { _id: { $nin: excludedPlanIds } },
             ]
-        });
+        }).populate('userId', 'apartment');
+        console.log(plans)
         res.json(plans);
     } catch (err) {
         console.error(err.message);
