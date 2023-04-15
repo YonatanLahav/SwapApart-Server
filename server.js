@@ -4,9 +4,13 @@ const express = require('express');
 const connectDB = require('./config/db');
 const cors = require('cors');
 const auth = require('./middleware/auth'); // import auth middleware
+const bodyParser = require('body-parser');
 
 const app = express();
 
+// set a higher payload limit
+app.use(bodyParser.json({ limit: '50mb' }));
+app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 // Connect to MongoDB database
 connectDB();
 
