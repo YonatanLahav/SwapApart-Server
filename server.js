@@ -6,6 +6,10 @@ const cors = require('cors');
 const auth = require('./middleware/auth'); // import auth middleware
 const bodyParser = require('body-parser');
 
+// async job for matching !
+// const schedule = require('node-schedule');
+// const matchService = require('./services/matchService'); // import matchService
+
 const app = express();
 
 // set a higher payload limit
@@ -26,6 +30,13 @@ app.use('/register', require('./routes/auth/register'));
 app.use('/api/users', auth, require('./routes/api/users'));
 app.use('/api/plans', auth, require('./routes/api/plans'));
 app.use('/api/swipes', auth, require('./routes/api/swipes'));
+
+// Define the matching job to be executed every 5 seconds 
+// const job = schedule.scheduleJob('*/5 * * * * *', async function () {
+// console.log('Matching process started');
+// await matchService.performMatching();
+// console.log('Matching process completed');
+// });
 
 // Root endpoint
 app.get('/', (req, res) => res.send('Hello World!'));
