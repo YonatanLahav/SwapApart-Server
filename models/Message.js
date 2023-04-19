@@ -4,9 +4,9 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const MessageSchema = new mongoose.Schema({
-    conversation: {
+    match: {
         type: Schema.Types.ObjectId,
-        ref: 'Conversation',
+        ref: 'Match',
         required: true
     },
     sender: {
