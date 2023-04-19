@@ -4,7 +4,6 @@ const Swipe = require('../../models/Swipe');
 const auth = require('../../middleware/auth');
 const Plan = require('../../models/Plan');
 const Match = require('../../models/Match');
-const Conversation = require('../../models/Conversation');
 
 // Middleware function to get a specific swipe by ID
 async function getSwipe(req, res, next) {
@@ -21,7 +20,7 @@ async function getSwipe(req, res, next) {
 }
 
 // Function that find all the Plans that have a match with the planId.
-const findAllMatches = async (planId) => {
+const findAllMatchesPlans = async (planId) => {
     try {
         // Find all swipes where the given plan was swiped right and store the swiped plan IDs
         const swipedPlanIds = await Swipe.find({ swiperPlan: planId, isLiked: true })
@@ -31,7 +30,6 @@ const findAllMatches = async (planId) => {
             .distinct('swiperPlan');
         // Find all plans that have a match with the given plan
         const matchPlans = await Plan.find({ _id: { $in: matchPlanIds } });
-        console.log(matchPlans)
         return matchPlans;
     } catch (error) {
         console.log(error);
@@ -39,9 +37,8 @@ const findAllMatches = async (planId) => {
 };
 
 // Create new matchs between plans if there isn't exist one.
-const createNewMatches = async (planId, matchPlans) => {
+const createNewMatch = async (planId, matchPlans) => {
     try {
-        const swiperPlan = await Plan.findById(planId);
         for (let i = 0; i < matchPlans.length; i++) {
             const matchPlan = matchPlans[i];
             const match = await Match.findOne({
@@ -49,19 +46,26 @@ const createNewMatches = async (planId, matchPlans) => {
             });
             if (!match) {
                 const newMatch = new Match({
-                    plans: [planId, matchPlan._id]
+                    plans: [planId, matchPlan._id],
+                    lastMessage: null, // set lastMessage to null
+                    messages: [] // set messages to an empty array
                 });
+                // Save the new match to the database
                 const savedMatch = await newMatch.save();
-                const conversation = new Conversation({
-                    match: savedMatch._id,
-                    users: [swiperPlan.userId, matchPlan.userId]
-
+                // Update the associated plans with the savedMatch ID
+                savedMatch.plans.forEach(async (p) => {
+                    const plan = await Plan.findById(p);
+                    if (!plan) {
+                        throw new Error('Plan not found');
+                    }
+                    plan.matchs.push(savedMatch._id);
+                    await plan.save();
                 });
-                await conversation.save();
+                return savedMatch;
             }
         }
     } catch (err) {
-        res.status(400).json({ message: err.message });
+        throw new Error(err.message);
     }
 };
 
@@ -90,9 +94,9 @@ router.post('/', auth, async (req, res) => {
     });
     try {
         const newSwipe = await swipe.save();
+        const newMatchPlans = await findAllMatchesPlans(req.body.swiperPlan);
+        const savedMatch = await createNewMatch(req.body.swiperPlan, newMatchPlans);
         res.status(201).json(newSwipe);
-        const newMatchPlans = await findAllMatches(req.body.swiperPlan);
-        await createNewMatches(req.body.swiperPlan, newMatchPlans);
     } catch (err) {
         res.status(400).json({ message: err.message });
     }

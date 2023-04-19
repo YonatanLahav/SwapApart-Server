@@ -8,9 +8,17 @@ const MatchSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'Plan'
     }],
-    conversation: {
+    lastMessage: {
         type: Schema.Types.ObjectId,
-        ref: 'Conversation'
-    }
+        ref: 'Message'
+    },
+    lastUpdate: {
+        type: Date,
+        default: Date.now
+    },
+    messages: [{
+        type: Schema.Types.ObjectId,
+        ref: 'Message'
+    }],
 });
 module.exports = mongoose.model('Match', MatchSchema);
