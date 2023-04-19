@@ -29,7 +29,7 @@ router.post(
             return res.status(400).json({ errors: errors.array() });
         }
 
-        const { firstName, lastName, email, password } = req.body;
+        const { firstName, lastName, email, password, apartment } = req.body;
 
         try {
             // Check if user already exists
@@ -45,12 +45,12 @@ router.post(
                 email,
                 password,
                 apartment: {
-                    country: 'a',
-                    region: 'a',
-                    city: 'a',
-                    rooms: 0,
-                    bathrooms: 0,
-                    pictures: []
+                    country: apartment.country,
+                    region: apartment.region,
+                    city: apartment.city,
+                    rooms: apartment.rooms,
+                    bathrooms: apartment.bathrooms,
+                    pictures: apartment.pictures
                 }
             });
 

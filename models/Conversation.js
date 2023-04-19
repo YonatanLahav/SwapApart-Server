@@ -16,6 +16,10 @@ const ConversationhSchema = new Schema({
     lastUpdate: {
         type: Date,
         default: Date.now
-    }
+    },
+    // messages: [
+    //     { type: mongoose.Schema.Types.ObjectId, ref: 'Message' }
+    // ],
+
 });
 module.exports = mongoose.model('Conversation', ConversationhSchema);
