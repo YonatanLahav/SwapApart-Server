@@ -14,19 +14,28 @@ router.get('/', auth, async (req, res) => {
     try {
         const user = await User.findById(req.user.id);
         const plansIds = user.plans;
-        const matches = await Match.find({ plans: { $in: plansIds } }).populate('plans');
+        const matches = await Match.find({ plans: { $in: plansIds } })
+            .populate('plans')
+            .populate('lastMessage')
+            .populate('messages')
+            .sort({ lastUpdate: -1 });
         const data = await Promise.all(matches.map(async (match) => {
             const plainMatch = match.toObject();
             const plan = plainMatch.plans.find(p => p.userId == req.user.id);
-            const matchedUser = (await Plan.findOne({ userId: { $ne: req.user.id } })
-                .populate('userId')).userId
-            const matchedUserData = {
-                firstName: matchedUser.firstName,
-                lastName: matchedUser.lastName,
-                apartment: matchedUser.apartment
+            const matchedPlan = await Plan.findOne({
+                _id: { $in: match.plans },
+                userId: { $ne: req.user.id }
+            }).populate('userId');
+            // const matchedUser = (await Plan.findOne({ userId: { $ne: req.user.id } })
+            //     .populate('userId')).userId
+            const matchedUser = {
+                firstName: matchedPlan.userId.firstName,
+                lastName: matchedPlan.userId.lastName,
+                apartment: matchedPlan.userId.apartment
             };
+
             plainMatch.plan = plan;
-            plainMatch.matchedUser = matchedUserData;
+            plainMatch.matchedUser = matchedUser;
             delete plainMatch.plans;
             return plainMatch;
         }))

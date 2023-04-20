@@ -27,6 +27,7 @@ app.use('/api/users', auth, require('./routes/api/users'));
 app.use('/api/plans', auth, require('./routes/api/plans'));
 app.use('/api/matches', auth, require('./routes/api/matches'));
 app.use('/api/swipes', auth, require('./routes/api/swipes'));
+app.use('/api/messages', auth, require('./routes/api/messages'));
 
 // Root endpoint
 app.get('/', (req, res) => res.send('Hello World!'));
