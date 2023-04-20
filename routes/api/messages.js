@@ -24,7 +24,9 @@ router.post('/', auth, async (req, res) => {
                     lastMessage: message._id,
                     lastUpdate: Date.now(),
                 },
-                $push: { messages: { $each: [message._id], $position: 0 } },
+                $push: {
+                    messages: message._id
+                },
             },
             { new: true }
         );
