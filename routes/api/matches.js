@@ -17,6 +17,7 @@ router.get('/', auth, async (req, res) => {
         const matches = await Match.find({ plans: { $in: plansIds } })
             .populate('plans')
             .populate('lastMessage')
+            .populate('messages')
             .sort({ lastUpdate: -1 });
         const data = await Promise.all(matches.map(async (match) => {
             const plainMatch = match.toObject();
