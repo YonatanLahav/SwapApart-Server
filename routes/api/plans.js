@@ -114,6 +114,7 @@ router.delete('/:id', auth, async (req, res) => {
 // @access  Private
 router.get('/optional/:id', auth, async (req, res) => {
     try {
+        const user = await User.findById(req.user.id)
         const plan = await Plan.findById(req.params.id)
         const startDateRange = new Date(plan.startDate);
         startDateRange.setDate(startDateRange.getDate() - 1);
@@ -129,16 +130,22 @@ router.get('/optional/:id', auth, async (req, res) => {
             $and: [
                 { startDate: { $gte: startDateRange } },
                 { endDate: { $lte: endDateRange } },
-                { userId: { $ne: plan.userId } },
-                { country: plan.country },
-                { region: plan.region },
-                { minRoomsNum: { $gte: plan.minRoomsNum } },
-                { minBathroomsNum: { $gte: plan.minBathroomsNum } },
+                { userId: { $ne: user._id } },
+                { country: user.apartment.country },
+                { region: user.apartment.region },
+                { minRoomsNum: { $gte: user.apartment.rooms } },
+                { minBathroomsNum: { $gte: user.apartment.bathrooms } },
                 { _id: { $nin: excludedPlanIds } },
             ]
         }).populate('userId', 'apartment');
-        console.log(plans)
-        res.json(plans);
+        const data = plans.filter((p) =>
+            p.userId.apartment.country == plan.country
+            && p.userId.apartment.region == plan.region
+            && p.userId.apartment.rooms >= plan.minRoomsNum
+            && p.userId.apartment.bathrooms >= plan.minBathroomsNum)
+        // console.log(user);
+        console.log(data)
+        res.json(data);
     } catch (err) {
         console.error(err.message);
         res.status(500).send('Server error');
