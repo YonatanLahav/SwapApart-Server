@@ -37,7 +37,7 @@ io.on("connection", (socket) => {
         console.log(onlineUsers);
     });
     // Event listener that handle a new message.
-    // msg = { match, sender, text: textContent };
+    // msg = { match, sender, text}
     socket.on("send_msg", async (msg) => {
         const toUserId = await getToUserId(msg.match, msg.sender);
         const sendToUserSocket = onlineUsers.get(toUserId);
