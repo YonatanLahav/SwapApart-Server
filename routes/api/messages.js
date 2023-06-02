@@ -5,10 +5,6 @@ const Message = require('../../models/Message');
 const Match = require('../../models/Match');
 const auth = require('../../middleware/auth');
 
-router.get('/', auth, async (req, res) => {
-    console.log("A");
-});
-
 // Create a new message
 router.post('/', auth, async (req, res) => {
     const { match, sender, text } = req.body;

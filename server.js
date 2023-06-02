@@ -1,21 +1,65 @@
 // /server.js
-
 const express = require('express');
 const connectDB = require('./config/db');
 const cors = require('cors');
 const auth = require('./middleware/auth'); // import auth middleware
 const bodyParser = require('body-parser');
-
+const http = require('http');
+const jwt = require('jsonwebtoken');
+const config = require('config');
+const socket = require('socket.io');
+const { getUserId, getToUserId } = require('./middleware/socket');
+const User = require('./models/User');
 const app = express();
 
-// set a higher payload limit
+// Create http server
+const server = http.createServer(app);
+
+/**
+ * Socket.io
+ */
+// Create the socket
+const io = socket(server, {
+    cors: {
+        origin: "http://localhost:3000",
+        credentials: true,
+    },
+});
+
+var onlineUsers = new Map();
+
+io.on("connection", (socket) => {
+    console.log("new connection");
+    // Event listener that add a new user to onlineUser map.
+    socket.on("add_user", (token) => {
+        const userId = getUserId(token);
+        onlineUsers.set(userId, socket.id);
+        console.log(onlineUsers);
+    });
+    // Event listener that handle a new message.
+    // msg = { match, sender, text: textContent };
+    socket.on("send_msg", async (msg) => {
+        const toUserId = await getToUserId(msg.match, msg.sender);
+        const sendToUserSocket = onlineUsers.get(toUserId);
+        console.log(toUserId)
+        if (sendToUserSocket) {
+            socket.to(sendToUserSocket).emit("msg_recieve", msg);
+        }
+        console.log(msg);
+    });
+});
+/**
+ * 
+ */
+
+// Enable Cross-Origin Resource Sharing
+app.use(cors());
+
+// Set a higher payload limit
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 // Connect to MongoDB database
 connectDB();
-
-// Enable Cross-Origin Resource Sharing
-app.use(cors());
 
 // Init Middleware
 app.use(express.json({ extended: false }));
@@ -34,4 +78,4 @@ app.get('/', (req, res) => res.send('Hello World!'));
 
 // Start the server
 const port = process.env.PORT || 5000;
-app.listen(port, () => console.log(`Server running on port ${port}`));
+server.listen(port, () => console.log(`Server running on port ${port}`));
