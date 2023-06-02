@@ -32,20 +32,25 @@ io.on("connection", (socket) => {
     console.log("new connection");
     // Event listener that add a new user to onlineUser map.
     socket.on("add_user", (token) => {
-        const userId = getUserId(token);
-        onlineUsers.set(userId, socket.id);
-        console.log(onlineUsers);
+        try {
+            const userId = getUserId(token);
+            onlineUsers.set(userId, socket.id);
+            console.log(onlineUsers);
+        }
+        catch (err) { console.log(err); }
     });
     // Event listener that handle a new message.
     // msg = { match, sender, text}
     socket.on("send_msg", async (msg) => {
-        const toUserId = await getToUserId(msg.match, msg.sender);
-        const sendToUserSocket = onlineUsers.get(toUserId);
-        console.log(toUserId)
-        if (sendToUserSocket) {
-            socket.to(sendToUserSocket).emit("msg_recieve", msg);
-        }
-        console.log(msg);
+        try {
+            const toUserId = await getToUserId(msg.match, msg.sender);
+            const sendToUserSocket = onlineUsers.get(toUserId);
+            console.log(toUserId)
+            if (sendToUserSocket) {
+                socket.to(sendToUserSocket).emit("msg_recieve", msg);
+            }
+            console.log(msg);
+        } catch (err) { console.log(err); }
     });
 });
 /**
