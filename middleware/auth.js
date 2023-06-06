@@ -3,6 +3,11 @@
 const jwt = require('jsonwebtoken');
 const config = require('config');
 
+/**
+ * Middleware function to verify the JWT token from the request header.
+ * If the token is valid, it sets the user from the token payload on the request object and calls the next middleware.
+ * If the token is missing or invalid, it returns a response with an appropriate error message.
+ */
 module.exports = function (req, res, next) {
     // Get token from header
     const authHeader = req.headers['authorization'];
