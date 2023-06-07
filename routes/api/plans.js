@@ -1,3 +1,5 @@
+// /routes/api/plans.js
+
 const express = require('express');
 const router = express.Router();
 const auth = require('../../middleware/auth');
@@ -5,9 +7,11 @@ const Plan = require('../../models/Plan');
 const Swipe = require('../../models/Swipe');
 const User = require('../../models/User');
 
-// @route   GET api/plans
-// @desc    Get all plans of the user.
-// @access  Private
+/**
+ * @route   GET api/plans
+ * @desc    Get all plans of the user.
+ * @access  Private
+ */
 router.get('/', auth, async (req, res) => {
     try {
         const plans = (await User.findById(req.user.id).populate('plans')).plans
@@ -18,9 +22,11 @@ router.get('/', auth, async (req, res) => {
     }
 });
 
-// @route   POST api/plans
-// @desc    Add new plan to the user.
-// @access  Private
+/**
+ * @route   POST api/plans
+ * @desc    Add new plan to the user.
+ * @access  Private
+ */
 router.post('/', auth, async (req, res) => {
     const { startDate, endDate, country, region, city, minRoomsNum, minBathroomsNum } = req.body;
     try {
@@ -47,9 +53,11 @@ router.post('/', auth, async (req, res) => {
     }
 });
 
-// @route   PUT api/plans/:id
-// @desc    Update plan by plan ID.
-// @access  Private
+/**
+ * @route   PUT api/plans/:id
+ * @desc    Update plan by plan ID.
+ * @access  Private
+ */
 router.put('/:id', auth, async (req, res) => {
     const { startDate, endDate, country, region, city, minRoomsNum, minBathroomsNum } = req.body;
 
@@ -86,9 +94,11 @@ router.put('/:id', auth, async (req, res) => {
     }
 });
 
-// @route   DELETE api/plans/:id
-// @desc    Delete plan
-// @access  Private
+/**
+ * @route   DELETE api/plans/:id
+ * @desc    Delete plan
+ * @access  Private
+ */
 router.delete('/:id', auth, async (req, res) => {
     try {
         let plan = await Plan.findById(req.params.id);
@@ -109,23 +119,28 @@ router.delete('/:id', auth, async (req, res) => {
     }
 });
 
-// @route   GET api/plans/optional/:id
-// @desc    Get all optional plans for matching.
-// @access  Private
+/**
+ * @route   GET api/plans/optional/:id
+ * @desc    Get all optional plans for matching.
+ * @access  Private
+ */
 router.get('/optional/:id', auth, async (req, res) => {
     try {
-        const user = await User.findById(req.user.id)
-        const plan = await Plan.findById(req.params.id)
+        const user = await User.findById(req.user.id);
+        const plan = await Plan.findById(req.params.id);
+
+        // Create a date range for plan's start and end dates
         const startDateRange = new Date(plan.startDate);
         startDateRange.setDate(startDateRange.getDate() - 1);
         const endDateRange = new Date(plan.endDate);
         endDateRange.setDate(endDateRange.getDate() + 1);
 
+        // Find plan IDs that have been swiped by the current plan
         const excludedPlanIds = await Swipe.distinct('swipedPlan', {
             swiperPlan: plan.id,
         });
 
-        console.log(excludedPlanIds)
+        // Find plans that match the criteria for potential matching
         const plans = await Plan.find({
             $and: [
                 { startDate: { $gte: startDateRange } },
@@ -138,13 +153,13 @@ router.get('/optional/:id', auth, async (req, res) => {
                 { _id: { $nin: excludedPlanIds } },
             ]
         }).populate('userId', 'apartment');
+
+        // Filter the plans based on specific matching criteria
         const data = plans.filter((p) =>
             p.userId.apartment.country == plan.country
             && p.userId.apartment.region == plan.region
             && p.userId.apartment.rooms >= plan.minRoomsNum
             && p.userId.apartment.bathrooms >= plan.minBathroomsNum)
-        // console.log(user);
-        console.log(data)
         res.json(data);
     } catch (err) {
         console.error(err.message);

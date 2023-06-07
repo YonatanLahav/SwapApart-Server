@@ -22,7 +22,11 @@ const MatchSchema = new Schema({
     messages: [{
         type: Schema.Types.ObjectId,
         ref: 'Message'
-    }]
+    }],
+    createdAt: {
+        type: Date,
+        default: Date.now
+    }
 });
 
 /**

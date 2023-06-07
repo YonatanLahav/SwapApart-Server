@@ -86,6 +86,7 @@ app.use('/api/plans', auth, require('./routes/api/plans')); // Plans API route
 app.use('/api/matches', auth, require('./routes/api/matches')); // Matches API route
 app.use('/api/swipes', auth, require('./routes/api/swipes')); // Swipes API route
 app.use('/api/messages', auth, require('./routes/api/messages')); // Messages API route
+app.use('/api/notifications', auth, require('./routes/api/notifications'));
 
 /**
  * Root Endpoint
