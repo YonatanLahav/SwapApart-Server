@@ -24,8 +24,9 @@ const io = socket(server, { // Create Socket.IO instance with server
     },
 });
 
-const onlineUsers = new Map(); // Create a Map to store online users
-
+// Create a Map to store online users
+const onlineUsers = new Map();
+module.exports = { onlineUsers, io };
 /**
  * Socket.IO Configuration
  */
@@ -99,3 +100,4 @@ app.get('/', (req, res) => res.send('Hello World!'));
 const port = process.env.PORT || 5000;
 server.listen(port, () => console.log(`Server running on port ${port}`));
 
+module.exports = { onlineUsers };
