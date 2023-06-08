@@ -7,7 +7,7 @@ const auth = require('../../middleware/auth');
 const Plan = require('../../models/Plan');
 const Match = require('../../models/Match');
 const User = require('../../models/User');
-
+const { onlineUsers, io } = require('../../server');
 /**
  * @route   GET api/swipes
  * @desc    Get all swipes
@@ -48,16 +48,40 @@ router.post('/', auth, async (req, res) => {
         const savedMatch = await createNewMatch(req.body.swiperPlan, newMatchPlans);
         if (savedMatch) {
             const match = await Match.findById(savedMatch._id).populate('plans');
-            console.log(match);
+            // console.log(match);
             const matchId = savedMatch._id;
             for (const plan of match.plans) {
                 const user = await User.findById(plan.userId);
                 user.notifications.push(matchId);
                 await user.save();
+                //
+                const plainMatch = match.toObject();
+                // Find the matched plan belonging to the other user in the match
+                const matchedPlan = await Plan.findOne({ userId: { $ne: plan.userId } }).populate('userId');
+                // Extract the necessary information from the matched user's plan
+                const matchedUser = {
+                    firstName: matchedPlan.userId.firstName,
+                    lastName: matchedPlan.userId.lastName,
+                    apartment: matchedPlan.userId.apartment
+                };
+                // Update the plainMatch object with the plan and matchedUser information
+                plainMatch.plan = plan;
+                plainMatch.matchedUser = matchedUser;
+                delete plainMatch.plans;
+                console.log("plainMatch: \n", plainMatch);
+                //
+                const userSocketId = onlineUsers.get(plan.userId.toString());
+                if (userSocketId) {
+                    io.to(userSocketId).emit("new_match_recieve", { matchId, plainMatch });
+                }
+                // console.log(onlineUsers);
+                // console.log(user._id);
+                // console.log(plan.userId);
             }
         }
         res.status(201).json(newSwipe);
     } catch (err) {
+        console.log(err);
         res.status(400).json({ message: err.message });
     }
 });
