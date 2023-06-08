@@ -3,6 +3,12 @@
 const jwt = require('jsonwebtoken');
 const config = require('config');
 
+/**
+ * Middleware for authenticating and verifying JWT token
+ * @param {object} req - Express request object
+ * @param {object} res - Express response object
+ * @param {function} next - Callback function to move to the next middleware
+ */
 module.exports = function (req, res, next) {
     // Get token from header
     const authHeader = req.headers['authorization'];
