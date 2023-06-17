@@ -48,27 +48,35 @@ router.post('/', auth, async (req, res) => {
         const savedMatch = await createNewMatch(req.body.swiperPlan, newMatchPlans);
         if (savedMatch) {
             const match = await Match.findById(savedMatch._id).populate('plans');
-            // console.log(match);
+            console.log(match);
             const matchId = savedMatch._id;
+            console.log("match._id: " + match._id);
+            console.log("savedMatch._id: " + savedMatch._id);
             for (const plan of match.plans) {
                 const user = await User.findById(plan.userId);
                 user.notifications.push(matchId);
                 await user.save();
                 //
                 const plainMatch = match.toObject();
+                ///////
+                console.log("match.plans: " + match.plans);
+                const mp = plainMatch.plans.find((p) => String(plan._id) !== String(p._id));
+                console.log(mp);
+                ///////
                 // Find the matched plan belonging to the other user in the match
-                const matchedPlan = await Plan.findOne({ userId: { $ne: plan.userId } }).populate('userId');
+                const matchedPlan = plainMatch.plans.find((p) => String(plan._id) !== String(p._id));
+                const populatedMatchedPlan = await Plan.findOne({ userId: matchedPlan.userId }).populate('userId');
                 // Extract the necessary information from the matched user's plan
                 const matchedUser = {
-                    firstName: matchedPlan.userId.firstName,
-                    lastName: matchedPlan.userId.lastName,
-                    apartment: matchedPlan.userId.apartment
+                    firstName: populatedMatchedPlan.userId.firstName,
+                    lastName: populatedMatchedPlan.userId.lastName,
+                    apartment: populatedMatchedPlan.userId.apartment
                 };
                 // Update the plainMatch object with the plan and matchedUser information
                 plainMatch.plan = plan;
                 plainMatch.matchedUser = matchedUser;
                 delete plainMatch.plans;
-                console.log("plainMatch: \n", plainMatch);
+                // console.log("plainMatch: \n", plainMatch);
                 //
                 const userSocketId = onlineUsers.get(plan.userId.toString());
                 if (userSocketId) {
