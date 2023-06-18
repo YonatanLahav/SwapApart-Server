@@ -20,7 +20,7 @@ const createMessage = async (matchId, sender, text) => {
             },
             { new: true }
         );
-        console.log("Updated match: " + updatedMatch);
+        // console.log("Updated match: " + updatedMatch);
         if (!updatedMatch) {
             throw new Error('Match not found');
         }
